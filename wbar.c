@@ -4,7 +4,7 @@
 #include <zbar.h>
 #include "emscripten.h"
 
-extern void get_result(const char *detected_code);
+extern void on_detected_callback(const char *detected_code);
 
 zbar_image_scanner_t *scanner = NULL;
 
@@ -36,7 +36,7 @@ int scan_image(uint8_t *raw, int width, int height)
     for (; symbol; symbol = zbar_symbol_next(symbol))
     {
         const char *detected_code = zbar_symbol_get_data(symbol);
-        get_result(detected_code);
+        on_detected_callback(detected_code);
     }
 
     free(gray_img);
