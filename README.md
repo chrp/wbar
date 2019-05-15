@@ -19,3 +19,10 @@ docker run -v "$PWD:/src" -it wbar-build-env bash
 make build/wbar.js 
 ```
 
+## Sources
+
+This is where we got ideas & code from: 
+
+- [Barkey Wolf Consulting: Using the ZBar barcode scanning suite in the browser with WebAssembly](https://barkeywolf.consulting/posts/barcode-scanner-webassembly/)
+- [samsam2310/zbar.wasm](https://github.com/samsam2310/zbar.wasm)
+- [zbar API](http://zbar.sourceforge.net/api/)
