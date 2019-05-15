@@ -1,4 +1,6 @@
-# wbar
+# wbar - zbar on Web Assembly
+
+This is a playground project aimed at finding out how C, Web Assembly and JS play together. Not suitable for anyone else.
 
 ## Usage
 
