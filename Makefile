@@ -1,13 +1,11 @@
-
-
 build/wbar.js: clean .emmake wbar.c
-	rm -rf build
 	mkdir build
 	emcc wbar.c zbar-src/zbar/.libs/libzbar.a \
 	  -o build/wbar.js \
 	  -I zbar-src/include/ \
-	  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap"]' \
-	  -Wunused-function
+	  --js-library ./library.js \
+	  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "Pointer_stringify"]' \
+	  -O3
 
 .emmake: zbar-src/Makefile
 	cd zbar-src && emmake make
