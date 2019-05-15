@@ -1,4 +1,5 @@
-build
 dist
 zbar-src
 .DS_Store
+.cache
+node_modules

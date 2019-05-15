@@ -4,65 +4,56 @@
 #include <zbar.h>
 #include "emscripten.h"
 
-extern void on_detected_callback(const char *detected_code);
+// External javascript function to pass the retrieved data to.
+extern void js_output_result(const char *symbolName, const char *data, const int *polygon, const unsigned polysize);
 
 zbar_image_scanner_t *scanner = NULL;
 
 EMSCRIPTEN_KEEPALIVE
 int scan_image(uint8_t *raw, int width, int height)
 {
-    //Grayscale
-    uint8_t* gray_img = (uint8_t*)malloc(width * height * sizeof(uint8_t));
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
-            uint8_t* pixels = raw + i * height * 4 + j * 4;
-            int sum = (int)pixels[0] + (int)pixels[1] + (int)pixels[2];
-            gray_img[i * height + j] = (uint8_t)(sum / 3);
-        }
-    }
-
     zbar_image_t *image = zbar_image_create();
-
     zbar_image_set_format(image, zbar_fourcc('Y', '8', '0', '0'));
     zbar_image_set_size(image, width, height);
-    zbar_image_set_data(image, gray_img, width * height, zbar_image_free_data);
+    zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
 
-    int return_code = zbar_scan_image(scanner, image);
-    if(return_code < 0) {
-        return(-1);
-    }
+    // scan the image for barcodes
+    int n = zbar_scan_image(scanner, image);
 
+    // Iterate over each detected barcode and extract its data and location
     const zbar_symbol_t *symbol = zbar_image_first_symbol(image);
     for (; symbol; symbol = zbar_symbol_next(symbol))
     {
-        const char *detected_code = zbar_symbol_get_data(symbol);
-        on_detected_callback(detected_code);
+        // Get the data encoded in the detected barcode.
+        zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
+        const char *data = zbar_symbol_get_data(symbol);
+
+        // get the polygon describing the bounding box of the barcode in the image
+        unsigned poly_size = zbar_symbol_get_loc_size(symbol);
+
+        // return the polygon as a flat array.
+        // (Parsing two-dimensional arrays from the wesm heap introduces unnecessary upstream code complexity)
+        int poly[poly_size * 2];
+        unsigned u = 0;
+        for (unsigned p = 0; p < poly_size; p++)
+        {
+            poly[u] = zbar_symbol_get_loc_x(symbol, p);
+            poly[u + 1] = zbar_symbol_get_loc_y(symbol, p);
+            u += 2;
+        }
+
+        // Output the result to the javascript environment
+        js_output_result(zbar_get_symbol_name(typ), data, poly, poly_size);
     }
 
-    free(gray_img);
+    // clean up
     zbar_image_destroy(image);
-    return (return_code);
+
+    return (0);
 }
 
-EMSCRIPTEN_KEEPALIVE
-void init() {
-    scanner = zbar_image_scanner_create();
-    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_X_DENSITY, 1);
-    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_Y_DENSITY, 1);
-
-    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_ENABLE, 0);
-    zbar_image_scanner_set_config(scanner, ZBAR_EAN8, ZBAR_CFG_ENABLE, 1);
-    zbar_image_scanner_set_config(scanner, ZBAR_EAN13, ZBAR_CFG_ENABLE, 1);
-    zbar_image_scanner_set_config(scanner, ZBAR_UPCA, ZBAR_CFG_ENABLE, 1);
-    zbar_image_scanner_set_config(scanner, ZBAR_UPCE, ZBAR_CFG_ENABLE, 1);
-}
-
-EMSCRIPTEN_KEEPALIVE
-void clean_up(uint8_t *p)
-{
-    zbar_image_scanner_destroy(scanner);
-}
-
+// this function can be used from the javascript environment to
+// allocate a buffer on the WebAssembly heap to accomodate the image that is to be scanned.
 EMSCRIPTEN_KEEPALIVE
 uint8_t *create_buffer(int width, int height)
 {
@@ -74,4 +65,22 @@ EMSCRIPTEN_KEEPALIVE
 void destroy_buffer(uint8_t *p)
 {
     free(p);
+}
+
+// EMSCRIPTEN_KEEPALIVE
+// void *configure(char **names, int size)
+// {
+// }
+
+int main(int argc, char ** argv) {
+    scanner = zbar_image_scanner_create();
+    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_X_DENSITY, 1);
+    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_Y_DENSITY, 1);
+
+    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_ENABLE, 0);
+    zbar_image_scanner_set_config(scanner, ZBAR_EAN8, ZBAR_CFG_ENABLE, 1);
+    zbar_image_scanner_set_config(scanner, ZBAR_EAN13, ZBAR_CFG_ENABLE, 1);
+    zbar_image_scanner_set_config(scanner, ZBAR_UPCA, ZBAR_CFG_ENABLE, 1);
+    zbar_image_scanner_set_config(scanner, ZBAR_UPCE, ZBAR_CFG_ENABLE, 1);
+    //    zbar_image_scanner_destroy(scanner);
 }
