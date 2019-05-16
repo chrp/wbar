@@ -48,7 +48,7 @@ EMSCRIPTEN_KEEPALIVE
 void init() {
     scanner = zbar_image_scanner_create();
     zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_X_DENSITY, 1);
-    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_Y_DENSITY, 1);
+    zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_Y_DENSITY, 0);
 
     zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_ENABLE, 0);
     zbar_image_scanner_set_config(scanner, ZBAR_EAN8, ZBAR_CFG_ENABLE, 1);
