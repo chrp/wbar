@@ -1,17 +1,17 @@
-import zBar from './a.out.js';
+import wbarCApi from './build/wbar.js';
 
 const MAX_WIDTH_RESOLUTION = 4096;
 const MAX_HEIGHT_RESOLUTION = 2160;
 
 export default {
   init: function(video_id, callback) {
-    zBar.onRuntimeInitialized = async _ => {
+    wbarCApi.onRuntimeInitialized = async _ => {
       const api = {
-        scan_image: zBar.cwrap('scan_image', '', ['number, number, number']),
-        init: zBar.cwrap('init', '', []),
-        clean_up: zBar.cwrap('clean_up', '', ['number']),
-        create_buffer: zBar.cwrap('create_buffer', 'number', ['number', 'number']),
-        destroy_buffer: zBar.cwrap('destroy_buffer', '', ['number']),
+        scan_image: wbarCApi.cwrap('scan_image', '', ['number, number, number']),
+        init: wbarCApi.cwrap('init', '', []),
+        cleawn_up: wbarCApi.cwrap('clean_up', '', ['number']),
+        create_buffer: wbarCApi.cwrap('create_buffer', 'number', ['number', 'number']),
+        destroy_buffer: wbarCApi.cwrap('destroy_buffer', '', ['number']),
       };
 
       const video = document.getElementById(video_id);
@@ -44,12 +44,12 @@ export default {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const buffer = api.create_buffer(image.width, image.height);
-      zBar.HEAP8.set(image.data, buffer);
+      wbarCApi.HEAP8.set(image.data, buffer);
 
       var r = api.scan_image(buffer, canvas.width, canvas.height) //in here we might have leak
       api.destroy_buffer(buffer);
     }
-    zBar['onDetected'] = callback;
+    wbarCApi['onDetected'] = callback;
     }
   },
   start: function() {},
