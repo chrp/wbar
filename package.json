@@ -1,0 +1,12 @@
+{
+  "name": "wbar",
+  "version": "0.1.0",
+  "description": "EAN scanner using zbar on web assembly",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christoph Peschel, Simon Kunz",
+  "license": "MIT",
+  "homepage": "https://github.com/chrp/wbar/"
+}
