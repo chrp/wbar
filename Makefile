@@ -4,7 +4,7 @@ build/wbar.js: clean .emmake wbar.c
 	  -o build/wbar.js \
 	  -I zbar-src/include/ \
 	  --js-library ./library.js \
-	  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "Pointer_stringify"]' \
+	  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "UTF8ToString"]' \
 	  -O3
 	echo "\nexport default Module" >> build/wbar.js
 
