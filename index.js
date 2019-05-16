@@ -13,7 +13,8 @@ export default {
         create_buffer: wbarCApi.cwrap('create_buffer', 'number', ['number', 'number']),
         destroy_buffer: wbarCApi.cwrap('destroy_buffer', '', ['number']),
       };
-
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       const video = document.getElementById(video_id);
       //with this the browser will return the highest possible resolution
       const constraints = {
@@ -29,8 +30,7 @@ export default {
 
       const track = stream.getVideoTracks()[0];
       const actualSettings = track.getSettings();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+
       canvas.width = actualSettings.width;
       canvas.height = actualSettings.height;
       api.init();
