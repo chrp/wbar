@@ -32,8 +32,7 @@ export default {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     lodash.defaults(options, {'scanner_offset_x':0,
-                              'scanner_offset_y': 0,
-                              'scanner_height': });
+                              'scanner_offset_y': 0});
     //here get width and height from tracks
     wbarApi.init();
     setTimeout(detectSymbols, 0);
