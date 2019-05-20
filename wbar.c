@@ -69,7 +69,6 @@ uint8_t *create_buffer(int width, int height)
     return malloc(width * height * 4 * sizeof(uint8_t));
 }
 
-// this function can be used from the javascript environment to free an image buffer.
 EMSCRIPTEN_KEEPALIVE
 void destroy_buffer(uint8_t *p)
 {
