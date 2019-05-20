@@ -1,49 +1,41 @@
 import wbarCApi from './build/wbar.js';
+import lodash from 'lodash';
 
 const MAX_WIDTH_RESOLUTION = 4096;
 const MAX_HEIGHT_RESOLUTION = 2160;
+
+let isPaused = false;
+
+function wrapWbarCApi() {
+  return {
+    scan_image: wbarCApi.cwrap('scan_image', '', ['number, number, number']),
+    init: wbarCApi.cwrap('init', '', []),
+    clean_up: wbarCApi.cwrap('clean_up', '', ['number']),
+    create_buffer: wbarCApi.cwrap('create_buffer', 'number', ['number', 'number']),
+    destroy_buffer: wbarCApi.cwrap('destroy_buffer', '', ['number']),
+  };
+}
+//TODO lodash in package.json
 /*
 options:
-  video_id:
-  stream:
+  video:
   scanner_offset_x:
   scanner_offset_y:
   scanner_width:
   scanner_height:
+  benchmarking:
 */
 export default {
   init: function(options, callback) {
-    const api = {
-      scan_image: wbarCApi.cwrap('scan_image', '', ['number, number, number']),
-      init: wbarCApi.cwrap('init', '', []),
-      clean_up: wbarCApi.cwrap('clean_up', '', ['number']),
-      create_buffer: wbarCApi.cwrap('create_buffer', 'number', ['number', 'number']),
-      destroy_buffer: wbarCApi.cwrap('destroy_buffer', '', ['number']),
-    };
-    if(options.stream === undefined || options.stream === null) {
-      const video = document.getElementById(options.video_id); //TODO check first
-      //with this the browser will return the highest possible resolution
-      const constraints = {
-        video: {
-          width: MAX_WIDTH_RESOLUTION,
-          height: MAX_HEIGHT_RESOLUTION
-        }
-      };
-      navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-        video.srcObject = stream;
-        video.play();
-        options.stream = stream;
-      }
-      ).catch((e) => {
-        throw e
-      });
-    }
+    const wbarApi = wrapWbarCApi();
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const track = options.stream.getVideoTracks()[0];
-    const track_settings = track.getSettings();
-    api.init();
+    lodash.defaults(options, {'scanner_offset_x':0,
+                              'scanner_offset_y': 0,
+                              'scanner_height': });
+    //here get width and height from tracks
+    wbarApi.init();
     setTimeout(detectSymbols, 0);
 
     function detectSymbols() {
@@ -51,25 +43,39 @@ export default {
 
       canvas.width = options.scanner_width;
       canvas.height = options.scanner_height;
-
       ctx.drawImage(
-        video, options.scanner_offset_x,
+        options.video, options.scanner_offset_x,
         options.scanner_offset_y,
-        canvas.width,
-        canvas.height
+        options.scanner_width,
+        options.scanner_height,
+        0,
+        0,
+        options.scanner_width,
+        options.scanner_height,
       );
       const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      const buffer = api.create_buffer(image.width, image.height);
+      const buffer = wbarApi.create_buffer(image.width, image.height);
       wbarCApi.HEAP8.set(image.data, buffer);
 
-      var r = api.scan_image(buffer, image.width, image.height) //in here we might have leak
-      api.destroy_buffer(buffer);
+      var r = wbarApi.scan_image(buffer, image.width, image.height) //in here we might have leak
+      wbarApi.destroy_buffer(buffer);
       var stop = (new Date).getTime();
       console.log(stop - start);
-      setTimeout(detectSymbols, 0);
+      if(!isPaused) {
+        setTimeout(detectSymbols, 0);
+      }
     }
     wbarCApi['onDetected'] = callback;
   },
-  start: function() {},
-  pause: function() {}
+  start: function() {
+    isPaused = false;
+    setTimeout(detectSymbols, 0);
+  },
+  pause: function() {
+    isPaused = true;
+  },
+  stop: function() {
+    isPaused = true;
+
+  }
 }
