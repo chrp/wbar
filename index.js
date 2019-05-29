@@ -19,7 +19,7 @@ function wrapWbarCApi() {
 }
 
 function detectSymbols() {
-
+  // performance logging
   var start = (new Date).getTime();
 
   canvasDrawingContext.drawImage(
@@ -36,16 +36,30 @@ function detectSymbols() {
   wbarCApi.HEAP8.set(image.data, buffer);
 
   var r = wbarApi.scan_image(buffer, image.width, image.height) //in here we might have leak
-  console.log(r);
 
   //wbarApi.destroy_buffer(buffer);
   var stop = (new Date).getTime();
-
-  //console.log(stop - start);
+  perfLog(stop - start);
 
   if(!isPaused) {
     setTimeout(detectSymbols, 0);
   }
+}
+
+let samples = new Array(128);
+let lastSample = 0;
+let nextSampleIndex = 0;
+function perfLog(seconds) {
+  lastSample = seconds;
+  samples[nextSampleIndex++] = lastSample;
+  if(nextSampleIndex == 128) nextSampleIndex = 0
+  if(samples[127] && nextSampleIndex % 30 == 0) {
+    console.log("Performance: " + samples.reduce((a,e) => a + e)/128);
+  }
+}
+
+function lastPerf() {
+  lastSample;
 }
 
 //TODO lodash in package.json
