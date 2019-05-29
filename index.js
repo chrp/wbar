@@ -58,10 +58,6 @@ function perfLog(seconds) {
   }
 }
 
-function lastPerf() {
-  lastSample;
-}
-
 //TODO lodash in package.json
 export default {
   /*
@@ -101,5 +97,8 @@ export default {
   stop: function() {
     isPaused = true;
 
+  },
+  lastPerf: function() {
+    lastSample;
   }
 }
