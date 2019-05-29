@@ -1,4 +1,4 @@
-build/wbar.js: clean .emmake wbar.c
+build/wbar.js: clean zbar-src/zbar/.libs/libzbar.a wbar.c
 	mkdir build
 	emcc wbar.c zbar-src/zbar/.libs/libzbar.a \
 	  -o build/wbar.js \
@@ -8,7 +8,7 @@ build/wbar.js: clean .emmake wbar.c
 	  -O3
 	echo "\nexport default Module" >> build/wbar.js
 
-.emmake: zbar-src/Makefile
+zbar-src/zbar/.libs/libzbar.a: zbar-src/Makefile
 	cd zbar-src && emmake make
 
 zbar-src/Makefile: zbar-src
