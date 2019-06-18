@@ -4,7 +4,7 @@ This is a playground project aimed at finding out how C, Web Assembly and JS pla
 
 ## Usage
 
-Not yet usable :)
+Not yet usable :) Don't use for production.
 
 ## Build
 
